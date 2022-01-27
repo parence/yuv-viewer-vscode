@@ -5,12 +5,12 @@ import { Disposable } from './dispose';
 /**
  * Define the document (the data model) used for YUV files.
  */
-class PawDrawDocument extends Disposable implements vscode.CustomDocument {
+class YuvDocument extends Disposable implements vscode.CustomDocument {
 
 	static async create(
 		uri: vscode.Uri
-	): Promise<PawDrawDocument | PromiseLike<PawDrawDocument>> {
-		return new PawDrawDocument(uri);
+	): Promise<YuvDocument | PromiseLike<YuvDocument>> {
+		return new YuvDocument(uri);
 	}
 
 	private readonly _uri: vscode.Uri;
@@ -46,28 +46,14 @@ class PawDrawDocument extends Disposable implements vscode.CustomDocument {
 }
 
 /**
- * Provider for paw draw editors.
- *
- * Paw draw editors are used for `.pawDraw` files, which are just `.png` files with a different file extension.
- *
- * This provider demonstrates:
- *
- * - How to implement a custom editor for binary files.
- * - Setting up the initial webview for a custom editor.
- * - Loading scripts and styles in a custom editor.
- * - Communication between VS Code and the custom editor.
- * - Using CustomDocuments to store information that is shared between multiple custom editors.
- * - Implementing save, undo, redo, and revert.
- * - Backing up a custom editor.
+ * Provider for Yuv editors.
  */
-export class PawDrawEditorProvider implements vscode.CustomReadonlyEditorProvider<PawDrawDocument> {
-
-	// private static newPawDrawFileId = 1;
+export class YuvEditorProvider implements vscode.CustomReadonlyEditorProvider<YuvDocument> {
 
 	public static register(context: vscode.ExtensionContext): vscode.Disposable {
 		return vscode.window.registerCustomEditorProvider(
-			PawDrawEditorProvider.viewType,
-			new PawDrawEditorProvider(context),
+			YuvEditorProvider.viewType,
+			new YuvEditorProvider(context),
 			{
 				// For this demo extension, we enable `retainContextWhenHidden` which keeps the
 				// webview alive even when it is not visible. You should avoid using this setting
@@ -96,14 +82,14 @@ export class PawDrawEditorProvider implements vscode.CustomReadonlyEditorProvide
 		uri: vscode.Uri,
 		_openContext: {},
 		_token: vscode.CancellationToken
-	): Promise<PawDrawDocument> {
-		const document: PawDrawDocument = await PawDrawDocument.create(uri);//, openContext.backupId);
+	): Promise<YuvDocument> {
+		const document: YuvDocument = await YuvDocument.create(uri);//, openContext.backupId);
 
 		return document;
 	}
 
 	async resolveCustomEditor(
-		document: PawDrawDocument,
+		document: YuvDocument,
 		webviewPanel: vscode.WebviewPanel,
 		_token: vscode.CancellationToken
 	): Promise<void> {
@@ -181,13 +167,9 @@ export class PawDrawEditorProvider implements vscode.CustomReadonlyEditorProvide
 				<link href="${styleMainUri}" rel="stylesheet" />
 				-->
 
-				<title>Paw Draw</title>
+				<title>Yuv-viewer</title>
 			</head>
 			<body>
-				<input 
-					type='text' id='frameidx' value='0' 
-					onclick='postMessage({type: "update"})'
-				></input>
 				<div class="drawing-canvas"></div>
 
 				<div class="drawing-controls">
