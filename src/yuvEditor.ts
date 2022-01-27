@@ -55,11 +55,8 @@ export class YuvEditorProvider implements vscode.CustomReadonlyEditorProvider<Yu
 			YuvEditorProvider.viewType,
 			new YuvEditorProvider(context),
 			{
-				// For this demo extension, we enable `retainContextWhenHidden` which keeps the
-				// webview alive even when it is not visible. You should avoid using this setting
-				// unless is absolutely required as it does have memory overhead.
 				webviewOptions: {
-					retainContextWhenHidden: true,
+					retainContextWhenHidden: false,
 				},
 				supportsMultipleEditorsPerDocument: false,
 			});
@@ -76,14 +73,12 @@ export class YuvEditorProvider implements vscode.CustomReadonlyEditorProvider<Yu
 		private readonly _context: vscode.ExtensionContext
 	) { }
 
-	//#region CustomEditorProvider
-
 	async openCustomDocument(
 		uri: vscode.Uri,
 		_openContext: {},
 		_token: vscode.CancellationToken
 	): Promise<YuvDocument> {
-		const document: YuvDocument = await YuvDocument.create(uri);//, openContext.backupId);
+		const document: YuvDocument = await YuvDocument.create(uri);
 
 		return document;
 	}
@@ -109,8 +104,6 @@ export class YuvEditorProvider implements vscode.CustomReadonlyEditorProvider<Yu
 				{
 					this.postMessage(webviewPanel, 'init', {
 						value: (await document.getFrame(50))
-						// document.documentData,
-						// editable,
 					});
 				}
 				case 'update':
