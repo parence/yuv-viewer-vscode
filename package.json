@@ -10,14 +10,20 @@
 		"Other"
 	],
 	"activationEvents": [
-        "onCommand:yuv-viewer.helloWorld"
+		"onCustomEditor:yuv-viewer.view"
 	],
 	"main": "./dist/extension.js",
 	"contributes": {
-		"commands": [
+		"customEditors": [
 			{
-				"command": "yuv-viewer.helloWorld",
-				"title": "Hello World"
+				"viewType": "yuv-viewer.view",
+				"displayName": "yuv",
+				"selector": [
+					{
+					"filenamePattern": "*.yuv"
+					}
+				],
+				"priority": "default"
 			}
 		]
 	},
