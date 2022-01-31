@@ -8,7 +8,7 @@ import { read as readYuv } from 'yuvjs';
  */
 class YuvDocument extends Disposable implements vscode.CustomDocument {
   static async create(
-    uri: vscode.Uri
+    uri: vscode.Uri,
   ): Promise<YuvDocument | PromiseLike<YuvDocument>> {
     return new YuvDocument(uri);
   }
@@ -24,8 +24,10 @@ class YuvDocument extends Disposable implements vscode.CustomDocument {
     return this._uri;
   }
 
-  public getFrame(idx: number) {
-    return readYuv(this.uri.path, [720, 1280], { idx: idx });
+  public getFrame(idx: number, cfg: any) {
+    return readYuv(this.uri.path, [cfg.height, cfg.width], { 
+      idx: idx, format: cfg.format 
+    });
   }
 
   private readonly _onDidDispose = this._register(
@@ -80,6 +82,12 @@ export class YuvEditorProvider
     _openContext: {},
     _token: vscode.CancellationToken
   ): Promise<YuvDocument> {
+    let state = this._context.workspaceState.get(uri.path);
+    if (!state) {
+      state = {active: true, cfg: { width: 1280, height: 720, format: '444' }};
+    }
+    (state as Record<string, any>).active = true;
+    this._context.workspaceState.update(uri.path, state);
     const document: YuvDocument = await YuvDocument.create(uri);
 
     return document;
@@ -91,7 +99,7 @@ export class YuvEditorProvider
     _token: vscode.CancellationToken
   ): Promise<void> {
     // Add the webview to our internal set of active webviews
-    this.webviews.add(document.uri, webviewPanel);
+    this.webviews.add(document.uri, webviewPanel, this._context);
 
     // Setup initial content for the webview
     webviewPanel.webview.options = {
@@ -103,8 +111,9 @@ export class YuvEditorProvider
     webviewPanel.webview.onDidReceiveMessage(async (e) => {
       switch (e.type) {
         case "load": {
+          const cfg = (this._context.workspaceState.get(document.uri.path) as Record<string, any>).cfg;
           this.postMessage(webviewPanel, `load-${e.idx}`, {
-            value: (await document.getFrame(e.idx)).asRGBA(),
+            value: (await document.getFrame(e.idx, cfg)).asRGBA(),
           });
         }
       }
@@ -136,8 +145,8 @@ export class YuvEditorProvider
 				<!--
 				Use a content security policy to only allow loading images from https or from our extension directory,
 				and only allow scripts that have a specific nonce.
-				-->
 				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource} blob:; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
+				-->
 
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -186,11 +195,13 @@ class WebviewCollection {
   /**
    * Add a new webview to the collection.
    */
-  public add(uri: vscode.Uri, webviewPanel: vscode.WebviewPanel) {
+  public add(uri: vscode.Uri, webviewPanel: vscode.WebviewPanel, context: vscode.ExtensionContext) {
     const entry = { resource: uri.toString(), webviewPanel };
     this._webviews.add(entry);
 
     webviewPanel.onDidDispose(() => {
+      const state = context.workspaceState.get(uri.path) as Record<string, any>;
+      context.workspaceState.update(uri.path, {...state, ...{active: false}});
       this._webviews.delete(entry);
     });
   }
