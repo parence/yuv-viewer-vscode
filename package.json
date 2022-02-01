@@ -33,7 +33,17 @@
           "name": "Yuv Viewer"
         }
       ]
-    }
+    },
+    "commands": [
+      {
+        "command": "yuv-viewer.setFormat",
+        "title": "Yuv-Viewer: Set format"
+      },
+      {
+        "command": "yuv-viewer.deleteCache",
+        "title": "Yuv-Viewer: Delete cache"
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run package",

@@ -56,9 +56,35 @@ export class YuvEditorProvider
   implements vscode.CustomReadonlyEditorProvider<YuvDocument>
 {
   public static register(context: vscode.ExtensionContext): vscode.Disposable {
+    const yuvEditor = new YuvEditorProvider(context);
+    /* TODO only for dev */
+    vscode.commands.registerCommand('yuv-viewer.deleteCache', () => {
+      context.workspaceState.keys().forEach(key => {
+        context.workspaceState.update(key, undefined);
+      });
+    });
+
+    vscode.commands.registerCommand('yuv-viewer.setFormat', async () => {
+      const yuvFiles = context.workspaceState.keys().filter((key) => {
+        const state = context.workspaceState.get(key);
+        return (state as Record<string, any>).active === true;
+      });
+      if (yuvFiles.length) {
+        const yuvFile = yuvFiles[0];
+        let cfg: any = context.workspaceState.get(yuvFile);
+
+        const format = await vscode.window.showQuickPick(
+          ['420', '444', '400'], { canPickMany: false }
+        );
+
+        cfg.cfg.format = format;
+        context.workspaceState.update(yuvFile, cfg);
+        yuvEditor.postMessage(vscode.Uri.parse(yuvFile), 'refresh', {});
+      }
+    });
     return vscode.window.registerCustomEditorProvider(
       YuvEditorProvider.viewType,
-      new YuvEditorProvider(context),
+      yuvEditor,
       {
         webviewOptions: {
           retainContextWhenHidden: false,
@@ -82,12 +108,16 @@ export class YuvEditorProvider
     _openContext: {},
     _token: vscode.CancellationToken
   ): Promise<YuvDocument> {
-    let state = this._context.workspaceState.get(uri.path);
+    let state = this._context.workspaceState.get(uri.toString());
     if (!state) {
-      state = {active: true, cfg: { width: 1280, height: 720, format: '444' }};
+      state = {
+        active: true, visible: true, cfg: {
+          width: 1280, height: 720, format: '444'
+        }};
     }
     (state as Record<string, any>).active = true;
-    this._context.workspaceState.update(uri.path, state);
+    (state as Record<string, any>).visible = true;
+    this._context.workspaceState.update(uri.toString(), state);
     const document: YuvDocument = await YuvDocument.create(uri);
 
     return document;
@@ -111,7 +141,9 @@ export class YuvEditorProvider
     webviewPanel.webview.onDidReceiveMessage(async (e) => {
       switch (e.type) {
         case "load": {
-          const cfg = (this._context.workspaceState.get(document.uri.path) as Record<string, any>).cfg;
+          const cfg = (this._context.workspaceState.get(
+            document.uri.toString()
+          ) as Record<string, any>).cfg;
           this.postMessage(webviewPanel, `load-${e.idx}`, {
             value: (await document.getFrame(e.idx, cfg)).asRGBA(),
           });
@@ -162,13 +194,17 @@ export class YuvEditorProvider
 			</html>`;
   }
 
-  private postMessage(
-    panel: vscode.WebviewPanel,
-    type: string,
-    body: any
-  ): void {
-    panel.webview.postMessage({ type, body });
+  postMessage(uri: vscode.Uri, type: string, body: any): void;
+  postMessage(panel: vscode.WebviewPanel, type: string, body: any): void;
+  postMessage(uriOrPanel: vscode.Uri | vscode.WebviewPanel, type: string, body: any)
+  {
+    const isUri = uriOrPanel instanceof vscode.Uri;
+    const panels = isUri ? this.webviews.get(uriOrPanel) : [uriOrPanel];
+    for (const panel of panels) {
+      panel.webview.postMessage({ type, body });
+    }
   }
+
 }
 
 /**
@@ -200,9 +236,18 @@ class WebviewCollection {
     this._webviews.add(entry);
 
     webviewPanel.onDidDispose(() => {
-      const state = context.workspaceState.get(uri.path) as Record<string, any>;
-      context.workspaceState.update(uri.path, {...state, ...{active: false}});
+      const state = context.workspaceState.get(uri.toString()) as Record<string, any>;
+      state.active = false;
+      state.visible = false;
+      context.workspaceState.update(uri.toString(), state);
       this._webviews.delete(entry);
+    });
+
+    webviewPanel.onDidChangeViewState((event) => {
+      const state = context.workspaceState.get(uri.toString()) as Record<string, any>;
+      state.active = event.webviewPanel.active;
+      state.visible = event.webviewPanel.visible;
+      context.workspaceState.update(uri.toString(), state);
     });
   }
 }

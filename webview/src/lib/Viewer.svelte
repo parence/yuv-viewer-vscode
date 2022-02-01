@@ -10,8 +10,7 @@
     import Stop from './icons/stop.svelte';
 
     onMount(async () => {
-        await setFrame(0);
-        offset = fps;
+        await setFrame(0, 1);
     });
 
     const buffer = new Map<number, ImageData>();
@@ -26,7 +25,7 @@
         ));
     };
 
-    const setFrame = async (idx: number) => {
+    const setFrame = async (idx: number, bufferSize?: number) => {
         if (idx < 0 || idx >= nr_frames) return;
         if (buffer.has(idx)) {
             frame = buffer.get(idx);
@@ -37,8 +36,10 @@
         }
 
         loading = true;
-        await buffering(idx, offset);
-        offset = Math.round(offset * 1.5);
+        await buffering(idx, (bufferSize === undefined) ? offset : bufferSize);
+        if (bufferSize !== undefined) {
+            offset = Math.round(offset * 1.5);
+        }
         loading = false;
         await setFrame(idx);
     };
@@ -62,6 +63,10 @@
     };
 
 
+    export const refresh = () => {
+        buffer.clear();
+        setFrame(frame_idx, 1);
+    };
     export let loadFrame: (idx: number) => Promise<ImageData>;
     export let frame_idx = 0;
     export let nr_frames = 1;
@@ -69,7 +74,7 @@
     let frame: ImageData;
     let canvas: HTMLCanvasElement;
 
-    let offset = 1;
+    let offset = fps;
     let playing = false;
     let loading = false;
 
