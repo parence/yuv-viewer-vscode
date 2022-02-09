@@ -64,13 +64,20 @@ export class YuvEditorProvider
       });
     });
 
-    vscode.commands.registerCommand('yuv-viewer.setFormat', async () => {
+    const getCurrentYuv = () => {
       const yuvFiles = context.workspaceState.keys().filter((key) => {
         const state = context.workspaceState.get(key);
         return (state as Record<string, any>).active === true;
       });
       if (yuvFiles.length) {
-        const yuvFile = yuvFiles[0];
+        return yuvFiles[0];
+      }
+      // TODO throw ?
+    };
+
+    vscode.commands.registerCommand('yuv-viewer.setFormat', async () => {
+      const yuvFile = getCurrentYuv();
+      if (yuvFile) {
         let cfg: any = context.workspaceState.get(yuvFile);
 
         const format = await vscode.window.showQuickPick(
@@ -78,6 +85,35 @@ export class YuvEditorProvider
         );
 
         cfg.cfg.format = format;
+        context.workspaceState.update(yuvFile, cfg);
+        yuvEditor.postMessage(vscode.Uri.parse(yuvFile), 'refresh', {});
+        vscode.commands.executeCommand('yuv-viewer.refresh');
+      }
+    });
+    vscode.commands.registerCommand('yuv-viewer.setWidth', async () => {
+      const yuvFile = getCurrentYuv();
+      if (yuvFile) {
+        let cfg: any = context.workspaceState.get(yuvFile);
+
+        const width = await vscode.window.showInputBox();
+
+        if (width) {
+          cfg.cfg.width = parseInt(width);
+        }
+        context.workspaceState.update(yuvFile, cfg);
+        yuvEditor.postMessage(vscode.Uri.parse(yuvFile), 'refresh', {});
+      }
+    });
+    vscode.commands.registerCommand('yuv-viewer.setHeight', async () => {
+      const yuvFile = getCurrentYuv();
+      if (yuvFile) {
+        let cfg: any = context.workspaceState.get(yuvFile);
+
+        const height = await vscode.window.showInputBox();
+
+        if (height) {
+          cfg.cfg.height = parseInt(height);
+        }
         context.workspaceState.update(yuvFile, cfg);
         yuvEditor.postMessage(vscode.Uri.parse(yuvFile), 'refresh', {});
       }
@@ -120,6 +156,7 @@ export class YuvEditorProvider
     this._context.workspaceState.update(uri.toString(), state);
     const document: YuvDocument = await YuvDocument.create(uri);
 
+    vscode.commands.executeCommand('yuv-viewer.refresh');
     return document;
   }
 
@@ -145,7 +182,7 @@ export class YuvEditorProvider
             document.uri.toString()
           ) as Record<string, any>).cfg;
           this.postMessage(webviewPanel, `load-${e.idx}`, {
-            value: (await document.getFrame(e.idx, cfg)).asRGBA(),
+            value: (await document.getFrame(e.idx, cfg)),
           });
         }
       }

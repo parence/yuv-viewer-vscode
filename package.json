@@ -40,6 +40,14 @@
         "title": "Yuv-Viewer: Set format"
       },
       {
+        "command": "yuv-viewer.setWidth",
+        "title": "Yuv-Viewer: Set width"
+      },
+      {
+        "command": "yuv-viewer.setHeight",
+        "title": "Yuv-Viewer: Set height"
+      },
+      {
         "command": "yuv-viewer.deleteCache",
         "title": "Yuv-Viewer: Delete cache"
       }

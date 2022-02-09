@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import Viewer from './lib/Viewer.svelte'
-  // import type { Yuv } from 'yuvjs';
+  import { Yuv } from 'yuvjs/web';
 
   let refresh: () => {};
   onMount(() => {
@@ -18,7 +18,7 @@
 
   const loadFrame = async (idx: number) => {
     vscode.postMessage({ type: "load", idx: idx });
-    const yuv = await new Promise<Uint8Array>((resolve) => {
+    let yuv = await new Promise<Yuv>((resolve) => {
       const listener = (event: MessageEvent) => {
         const { type, body } = event.data;
         if (type === `load-${idx}`) {
@@ -29,7 +29,9 @@
       window.addEventListener('message', listener);
     });
 
-    return new ImageData(new Uint8ClampedArray(yuv), 1280);
+    /* TODO handle yuv400 case - add constructor */
+    yuv = new Yuv({y: yuv.y, u: yuv.u, v: yuv.v}, yuv.width, yuv.height, yuv.bits);
+    return new ImageData(new Uint8ClampedArray(yuv.asRGBA()), yuv.height);
   };
 </script>
 
