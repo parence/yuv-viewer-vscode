@@ -36,6 +36,10 @@
     },
     "commands": [
       {
+        "command": "yuv-viewer.refresh",
+        "title": "Refresh"
+      },
+      {
         "command": "yuv-viewer.setFormat",
         "title": "Yuv-Viewer: Set format"
       },

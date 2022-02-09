@@ -1,15 +1,24 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
 
 export class YuvSettingsProvider implements vscode.TreeDataProvider<YuvCfgItem> {
   public static register(context: vscode.ExtensionContext) {
+    const yuvSettings = new YuvSettingsProvider(context);
 	vscode.window.registerTreeDataProvider(
-		'yuvViewer',
-		new YuvSettingsProvider(context)
+		'yuvViewer', yuvSettings
 	);
+    vscode.commands.registerCommand('yuv-viewer.refresh', () =>
+        yuvSettings.refresh()
+    );
  }
 
   constructor(private readonly _context: vscode.ExtensionContext) {}
+  
+  private _onDidChangeTreeData: vscode.EventEmitter<YuvCfgItem | undefined | null | void> = new vscode.EventEmitter<YuvCfgItem | undefined | null | void>();
+  readonly onDidChangeTreeData: vscode.Event<YuvCfgItem | undefined | null | void> = this._onDidChangeTreeData.event;
+
+  refresh(): void {
+    this._onDidChangeTreeData.fire();
+  }
 
   getTreeItem(element: YuvCfgItem): vscode.TreeItem {
     return element;
@@ -59,13 +68,14 @@ class YuvCfgItem extends vscode.TreeItem {
     private value: string,
     public readonly collapsibleState: vscode.TreeItemCollapsibleState
   ) {
-    super(key, collapsibleState);
+    super(
+        vscode.workspace.asRelativePath(vscode.Uri.parse(key)),
+        collapsibleState
+    );
+    const label = typeof this.label === 'string' ? this.label : this.label!.label;
+    this.label = label[0] === '/' ? label.slice(1) : label;
     this.tooltip = `${this.key}: ${this.value}`;
     this.description = this.value;
   }
 
-  iconPath = {
-    light: path.join(__filename, '..', '..', 'resources', 'light', 'dependency.svg'),
-    dark: path.join(__filename, '..', '..', 'resources', 'dark', 'dependency.svg')
-  };
 }
