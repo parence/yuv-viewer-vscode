@@ -35,4 +35,6 @@
   };
 </script>
 
-<Viewer bind:refresh={refresh} loadFrame='{loadFrame}' nr_frames='{500}'></Viewer>
+<div class='w-full min-h-screen flex justify-center items-center'>
+  <Viewer bind:refresh={refresh} loadFrame='{loadFrame}' nr_frames='{500}'></Viewer>
+</div>
