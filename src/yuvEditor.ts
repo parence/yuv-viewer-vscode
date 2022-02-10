@@ -3,6 +3,7 @@ import { getNonce } from "./util";
 import { Disposable } from "./dispose";
 import { read as readYuv } from 'yuvjs';
 import { FrameCfg } from 'yuvjs';
+import { YuvFormat } from "yuvjs/dist/yuv";
 
 interface YuvState {
   active: boolean;
@@ -82,49 +83,48 @@ export class YuvEditorProvider
       // TODO throw ?
     };
 
-    vscode.commands.registerCommand('yuv-viewer.setFormat', async () => {
-      const yuvFile = getCurrentYuv();
-      if (yuvFile) {
-        let cfg: any = context.workspaceState.get(yuvFile);
-
-        const format = await vscode.window.showQuickPick(
-          ['420', '444', '400'], { canPickMany: false }
-        );
-
-        cfg.cfg.format = format;
-        context.workspaceState.update(yuvFile, cfg);
-        yuvEditor.postMessage(vscode.Uri.parse(yuvFile), 'refresh', {});
-        vscode.commands.executeCommand('yuv-viewer.refresh');
-      }
-    });
-    vscode.commands.registerCommand('yuv-viewer.setWidth', async () => {
-      const yuvFile = getCurrentYuv();
-      if (yuvFile) {
-        let cfg: any = context.workspaceState.get(yuvFile);
-
-        const width = await vscode.window.showInputBox();
-
-        if (width) {
-          cfg.cfg.width = parseInt(width);
+    const addCfgCommand = async (
+      name: string, setCfgItem: (cfg: FrameCfg) => Promise<FrameCfg>
+    ) => {
+      vscode.commands.registerCommand(name, async () => {
+        const yuvFile = getCurrentYuv();
+        if (yuvFile) {
+          const state: YuvState = context.workspaceState.get(yuvFile)!;
+          state.cfg = await setCfgItem(state.cfg);
+          context.workspaceState.update(yuvFile, state);
+          yuvEditor.postMessage(vscode.Uri.parse(yuvFile), 'refresh', {});
+          vscode.commands.executeCommand('yuv-viewer.refresh');
         }
-        context.workspaceState.update(yuvFile, cfg);
-        yuvEditor.postMessage(vscode.Uri.parse(yuvFile), 'refresh', {});
-      }
-    });
-    vscode.commands.registerCommand('yuv-viewer.setHeight', async () => {
-      const yuvFile = getCurrentYuv();
-      if (yuvFile) {
-        let cfg: any = context.workspaceState.get(yuvFile);
+      });
+    };
 
-        const height = await vscode.window.showInputBox();
-
-        if (height) {
-          cfg.cfg.height = parseInt(height);
-        }
-        context.workspaceState.update(yuvFile, cfg);
-        yuvEditor.postMessage(vscode.Uri.parse(yuvFile), 'refresh', {});
+    addCfgCommand('yuv-viewer.setFormat', async (cfg) => {
+      const format = await vscode.window.showQuickPick(
+        ['420', '444', '400'], { canPickMany: false }
+      );
+      if (format) {
+        cfg.format = <YuvFormat>format;
       }
+      return cfg;
     });
+
+    addCfgCommand('yuv-viewer.setWidth', async (cfg) => {
+      const width = await vscode.window.showInputBox();
+      if (width) {
+        cfg.width = parseInt(width);
+      }
+      return cfg;
+    });
+
+    addCfgCommand('yuv-viewer.setHeight', async (cfg) => {
+      const height = await vscode.window.showInputBox();
+      if (height) {
+        cfg.height = parseInt(height);
+      }
+      return cfg;
+    });
+
+
     return vscode.window.registerCustomEditorProvider(
       YuvEditorProvider.viewType,
       yuvEditor,
