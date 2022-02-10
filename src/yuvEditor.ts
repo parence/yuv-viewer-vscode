@@ -289,6 +289,7 @@ class WebviewCollection {
       state.visible = false;
       context.workspaceState.update(uri.toString(), state);
       this._webviews.delete(entry);
+      vscode.commands.executeCommand('yuv-viewer.refresh');
     });
 
     webviewPanel.onDidChangeViewState((event) => {
@@ -296,6 +297,7 @@ class WebviewCollection {
       state.active = event.webviewPanel.active;
       state.visible = event.webviewPanel.visible;
       context.workspaceState.update(uri.toString(), state);
+      vscode.commands.executeCommand('yuv-viewer.refresh');
     });
   }
 }
