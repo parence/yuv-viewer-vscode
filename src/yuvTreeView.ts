@@ -33,7 +33,7 @@ export class YuvSettingsProvider implements vscode.TreeDataProvider<YuvCfgItem> 
       );
     } else {
         const yuvFiles = this._context.workspaceState.keys().filter((yuvFile) => {
-            return (this._context.workspaceState.get(yuvFile) as Record<string, any>).active;
+            return (this._context.workspaceState.get(yuvFile) as Record<string, any>).visible;
         });
         return Promise.resolve(
             yuvFiles.map(yuvFile => new YuvCfgItem(yuvFile, '', vscode.TreeItemCollapsibleState.Expanded))
