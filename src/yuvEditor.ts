@@ -2,32 +2,39 @@ import * as vscode from "vscode";
 import { getNonce } from "./util";
 import { Disposable } from "./dispose";
 import { read as readYuv } from 'yuvjs';
+import { FrameCfg } from 'yuvjs';
+
+interface YuvState {
+  active: boolean;
+  visible: boolean;
+  cfg: FrameCfg;
+};
 
 /**
  * Define the document (the data model) used for YUV files.
  */
 class YuvDocument extends Disposable implements vscode.CustomDocument {
   static async create(
-    uri: vscode.Uri,
+    uri: vscode.Uri, cfg: FrameCfg
   ): Promise<YuvDocument | PromiseLike<YuvDocument>> {
-    return new YuvDocument(uri);
+    return new YuvDocument(uri, cfg);
   }
 
   private readonly _uri: vscode.Uri;
+  private readonly _cfg: FrameCfg;
 
-  private constructor(uri: vscode.Uri) {
+  private constructor(uri: vscode.Uri, cfg: FrameCfg) {
     super();
     this._uri = uri;
+    this._cfg = cfg;
   }
 
   public get uri() {
     return this._uri;
   }
 
-  public getFrame(idx: number, cfg: any) {
-    return readYuv(this.uri.path, [cfg.height, cfg.width], { 
-      idx: idx, format: cfg.format 
-    });
+  public getFrame(idx: number) {
+    return readYuv(this.uri.path, {...this._cfg, idx: idx});
   }
 
   private readonly _onDidDispose = this._register(
@@ -144,17 +151,18 @@ export class YuvEditorProvider
     _openContext: {},
     _token: vscode.CancellationToken
   ): Promise<YuvDocument> {
-    let state = this._context.workspaceState.get(uri.toString());
+    let state: YuvState | undefined = this._context.workspaceState.get(uri.toString());
     if (!state) {
       state = {
         active: true, visible: true, cfg: {
           width: 1280, height: 720, format: '444'
         }};
+    } else {
+      state.active = true;
+      state.visible = true;
     }
-    (state as Record<string, any>).active = true;
-    (state as Record<string, any>).visible = true;
     this._context.workspaceState.update(uri.toString(), state);
-    const document: YuvDocument = await YuvDocument.create(uri);
+    const document: YuvDocument = await YuvDocument.create(uri, state.cfg);
 
     vscode.commands.executeCommand('yuv-viewer.refresh');
     return document;
@@ -177,14 +185,10 @@ export class YuvEditorProvider
     // Wait for the webview to be properly ready before we init
     webviewPanel.webview.onDidReceiveMessage(async (e) => {
       switch (e.type) {
-        case "load": {
-          const cfg = (this._context.workspaceState.get(
-            document.uri.toString()
-          ) as Record<string, any>).cfg;
+        case 'load':
           this.postMessage(webviewPanel, `load-${e.idx}`, {
-            value: (await document.getFrame(e.idx, cfg)),
+            value: await document.getFrame(e.idx),
           });
-        }
       }
     });
   }
@@ -273,7 +277,7 @@ class WebviewCollection {
     this._webviews.add(entry);
 
     webviewPanel.onDidDispose(() => {
-      const state = context.workspaceState.get(uri.toString()) as Record<string, any>;
+      const state = context.workspaceState.get(uri.toString()) as YuvState;
       state.active = false;
       state.visible = false;
       context.workspaceState.update(uri.toString(), state);
@@ -281,7 +285,7 @@ class WebviewCollection {
     });
 
     webviewPanel.onDidChangeViewState((event) => {
-      const state = context.workspaceState.get(uri.toString()) as Record<string, any>;
+      const state = context.workspaceState.get(uri.toString()) as YuvState;
       state.active = event.webviewPanel.active;
       state.visible = event.webviewPanel.visible;
       context.workspaceState.update(uri.toString(), state);
