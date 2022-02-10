@@ -52,6 +52,10 @@
         "title": "Yuv-Viewer: Set height"
       },
       {
+        "command": "yuv-viewer.setBitdepth",
+        "title": "Yuv-Viewer: Set bitdepth"
+      },
+      {
         "command": "yuv-viewer.deleteCache",
         "title": "Yuv-Viewer: Delete cache"
       }

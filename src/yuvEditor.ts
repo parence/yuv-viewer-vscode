@@ -124,6 +124,13 @@ export class YuvEditorProvider
       return cfg;
     });
 
+    addCfgCommand('yuv-viewer.setBitdepth', async (cfg) => {
+      const bits = await vscode.window.showInputBox();
+      if (bits) {
+        cfg.bits = parseInt(bits);
+      }
+      return cfg;
+    });
 
     return vscode.window.registerCustomEditorProvider(
       YuvEditorProvider.viewType,
