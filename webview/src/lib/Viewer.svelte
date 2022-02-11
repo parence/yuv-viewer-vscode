@@ -108,26 +108,26 @@
     {/if}
     <div class='transition duration-500 group-hover:duration-150 ease-in group-hover:opacity-100 opacity-0 absolute bottom-0 h-12 w-full text-gray-400 flex flex-col justify-between'>
         <div style='width:{(frame_idx + 1) / nr_frames * 100}%' class='h-1/6 bg-red-700'> </div>
-        <div class='flex justify-between items-center h-5/6 w-full bg-gray-900'>
+        <div class='flex justify-start items-center h-5/6 w-full bg-gray-900'>
             <div class='h-full w-1/3 flex justify-start items-center divide-x'>
-                <div on:click={play} class='h-full m-0 pr-2 hover:cursor-pointer hover:text-gray-100'>
+                <div on:click={play} class='h-full w-16 m-0 hover:cursor-pointer hover:text-gray-100'>
                     {#if playing}
                         <Pause></Pause>
                     {:else}
                         <Play></Play>
                     {/if}
                 </div>
-                <div on:click={stop} class='h-6 pl-2 hover:cursor-pointer hover:text-gray-100'>
+                <div on:click={stop} class='h-6 w-14 hover:cursor-pointer hover:text-gray-100'>
                     <Stop></Stop>
                 </div>
                 <div class='flex-grow'></div>
             </div>
-            <div class='flex space-x-2 justify-center items-center '>
-                <div class='h-6 hover:cursor-pointer hover:text-gray-100' on:click={() => {setFrame(frame_idx > 0 ? --frame_idx: 0)}}>
+            <div class='w-1/3 flex space-x-2 justify-center items-center'>
+                <div class='h-6 w-8 hover:cursor-pointer hover:text-gray-100' on:click={() => {setFrame(frame_idx > 0 ? --frame_idx: 0)}}>
                     <Rewind></Rewind>
                 </div>
-                <p class='select-none'>frame: {frame_idx}</p>
-                <div class='h-6 hover:cursor-pointer hover:text-gray-100' on:click={() => {setFrame(frame_idx < nr_frames -1 ? ++frame_idx : nr_frames)}}>
+                <div class='w-24 select-none flex justify-center'>frame: {frame_idx}</div>
+                <div class='h-6 w-8 hover:cursor-pointer hover:text-gray-100' on:click={() => {setFrame(frame_idx < nr_frames -1 ? ++frame_idx : nr_frames)}}>
                     <Forward></Forward>
                 </div>
             </div>
