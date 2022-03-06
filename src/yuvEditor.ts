@@ -1,9 +1,9 @@
 import * as vscode from "vscode";
 import { getNonce } from "./util";
 import { Disposable } from "./dispose";
-import { read as readYuv } from 'yuvjs';
 import { FrameCfg } from 'yuvjs';
 import { YuvFormat } from "yuvjs/dist/yuv";
+import { Reader } from 'yuvjs';
 
 interface YuvState {
   active: boolean;
@@ -22,20 +22,24 @@ class YuvDocument extends Disposable implements vscode.CustomDocument {
   }
 
   private readonly _uri: vscode.Uri;
-  private readonly _cfg: FrameCfg;
+  private readonly _reader: Reader;
 
   private constructor(uri: vscode.Uri, cfg: FrameCfg) {
     super();
     this._uri = uri;
-    this._cfg = cfg;
+    this._reader = new Reader(uri.path, cfg);
   }
 
   public get uri() {
     return this._uri;
   }
 
+  public get nrFrames() {
+    return this._reader.length;
+  }
+
   public getFrame(idx: number) {
-    return readYuv(this.uri.path, {...this._cfg, idx: idx});
+    return this._reader.read(idx);
   }
 
   private readonly _onDidDispose = this._register(
@@ -193,6 +197,7 @@ export class YuvEditorProvider
     webviewPanel.webview.onDidReceiveMessage(async (e) => {
       switch (e.type) {
         case 'load':
+          this.postMessage(webviewPanel, 'updateFrameCount', {nrFrames: document.nrFrames});
           this.postMessage(webviewPanel, `load-${e.idx}`, {
             value: await document.getFrame(e.idx),
           });
