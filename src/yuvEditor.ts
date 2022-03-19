@@ -1,9 +1,7 @@
 import * as vscode from "vscode";
 import { getNonce } from "./util";
 import { Disposable } from "./dispose";
-import { FrameCfg } from 'yuvjs';
-import { YuvFormat } from "yuvjs/dist/yuv";
-import { Reader } from 'yuvjs';
+import { FrameCfg, Reader, YuvFormat } from 'yuvjs';
 
 interface YuvState {
   active: boolean;
@@ -104,10 +102,10 @@ export class YuvEditorProvider
 
     addCfgCommand('yuv-viewer.setFormat', async (cfg) => {
       const format = await vscode.window.showQuickPick(
-        ['420', '444', '400'], { canPickMany: false }
+        Object.keys(YuvFormat), { canPickMany: false }
       );
-      if (format) {
-        cfg.format = <YuvFormat>format;
+      if (format !== undefined) {
+        cfg.format = YuvFormat[<keyof typeof YuvFormat>format];
       }
       return cfg;
     });
@@ -166,14 +164,14 @@ export class YuvEditorProvider
     if (!state) {
       state = {
         active: true, visible: true, cfg: {
-          width: 1280, height: 720, format: '444'
+          width: 1280, height: 720, format: YuvFormat.YUV444
         }};
     } else {
       state.active = true;
       state.visible = true;
     }
     this._context.workspaceState.update(uri.toString(), state);
-    const document: YuvDocument = await YuvDocument.create(uri, state.cfg);
+    const document: YuvDocument = await YuvDocument.create(uri, state!.cfg);
 
     vscode.commands.executeCommand('yuv-viewer.refresh');
     return document;
