@@ -40,8 +40,8 @@
         "title": "Refresh"
       },
       {
-        "command": "yuv-viewer.setFormat",
-        "title": "Yuv-Viewer: Set format"
+        "command": "yuv-viewer.setSubsampling",
+        "title": "Yuv-Viewer: Set chroma subsampling"
       },
       {
         "command": "yuv-viewer.setWidth",

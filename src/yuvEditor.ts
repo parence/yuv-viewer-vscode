@@ -100,7 +100,7 @@ export class YuvEditorProvider
       });
     };
 
-    addCfgCommand('yuv-viewer.setFormat', async (cfg) => {
+    addCfgCommand('yuv-viewer.setSubsampling', async (cfg) => {
       const format = await vscode.window.showQuickPick(
         Object.keys(YuvFormat), { canPickMany: false }
       );
