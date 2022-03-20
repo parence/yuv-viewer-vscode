@@ -4,7 +4,7 @@ This extension allows users to open and visualize YUV files directly within VSCo
 
 ## Why
 
-Developing software that deals with YUV files often requires to visually inspect those files. Being able to do so without leaving VSCode can greatly improve the developer experience and productivity. This is especially true when working on remote environments, where otherwise it would be necessary to download the files first. This extension is not intended to replace your video player and it has not been optimized for playback performance. It is intended to be used for inspecting files during software development.
+Developing software that deals with YUV files often requires to visually inspect those files. Being able to do so without leaving VSCode can greatly improve the developers experience and productivity. This is especially true when working on remote environments, where otherwise it would be necessary to download the files first. This extension is not intended to replace your video player and it has not been optimized for playback performance. It is intended to be used for inspecting files during software development.
 
 ## Usage
 
@@ -12,19 +12,20 @@ Open a YUV file with the '.yuv' file extension from within the file explorer in 
 
 The format can be changed using the Yuv-Viewer [commands](#commands) from the command palette.
 
-![commands: change YUV parameters](./assets/commands.gif)
+![commands: change YUV parameters](https://github.com/parence/yuv-viewer-vscode/blob/main/assets/commands.gif?raw=true)
 
-Configurations for each file are stored in the workspace i.e. reopening a previously configured YUV file will restore it's configuration.
 
-![reopen a YUV file](./assets/reopen.gif)
+Configurations for each file are stored in the workspace i.e. reopening a previously configured YUV file will restore its configuration.
+
+![reopen a YUV file](https://github.com/parence/yuv-viewer-vscode/blob/main/assets/reopen.gif?raw=true)
 
 Click on the player to playback / pause the video. Hovering the player will display playback controls.
 
-![play / pause](./assets/play.gif)
+![play / pause](https://github.com/parence/yuv-viewer-vscode/blob/main/assets/play.gif?raw=true)
 
 Seeking forwards and backwards can be done using the controls next to the frame index indicator.
 
-![seek](./assets/seek.gif)
+![seek](https://github.com/parence/yuv-viewer-vscode/blob/main/assets/seek.gif?raw=true)
 
 ### Commands
 
