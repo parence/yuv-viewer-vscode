@@ -8,9 +8,23 @@ Developing software that deals with YUV files often requires to visually inspect
 
 ## Usage
 
-Open a YUV file with the '.yuv' file extension from within the file explorer in VSCode. This opens a YUV player in a new tab assuming the default format (720p planar YUV444 with 8 bits per sample). Hovering the player will display playback controls.
+Open a YUV file with the '.yuv' file extension from within the file explorer in VSCode. This opens a YUV player in a new tab assuming the default format (720p planar YUV444 with 8 bits per sample).
 
-The format can be changed using the Yuv-Viewer [commands](#commands) from the command palette. Configurations for each file are stored in the workspace i.e. reopening a previously configured YUV file will restore it's configuration.
+The format can be changed using the Yuv-Viewer [commands](#commands) from the command palette.
+
+![commands: change YUV parameters](./assets/commands.gif)
+
+Configurations for each file are stored in the workspace i.e. reopening a previously configured YUV file will restore it's configuration.
+
+![reopen a YUV file](./assets/reopen.gif)
+
+Click on the player to playback / pause the video. Hovering the player will display playback controls.
+
+![play / pause](./assets/play.gif)
+
+Seeking forwards and backwards can be done using the controls next to the frame index indicator.
+
+![seek](./assets/seek.gif)
 
 ### Commands
 
