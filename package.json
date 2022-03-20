@@ -1,8 +1,12 @@
 {
   "name": "yuv-viewer",
-  "displayName": "yuv-viewer",
+  "displayName": "Yuv Viewer",
   "description": "View YUVs in VSCode",
   "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/parence/yuv-viewer-vscode.git"
+  },
   "engines": {
     "vscode": "^1.63.0"
   },
