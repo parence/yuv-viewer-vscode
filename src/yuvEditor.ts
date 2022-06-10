@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { getNonce } from "./util";
 import { Disposable } from "./dispose";
 import { FrameCfg, Reader, YuvFormat } from 'yuvjs';
+import { config } from "process";
 
 interface YuvState {
   active: boolean;
@@ -134,6 +135,24 @@ export class YuvEditorProvider
       return cfg;
     });
 
+    addCfgCommand('yuv-viewer.setResolution', async (cfg) => {
+      const extCfg = vscode.workspace.getConfiguration('yuv-viewer');
+      const res = await vscode.window.showQuickPick(
+        extCfg.resolutions, { canPickMany: false }
+      );
+      if (res !== undefined) {
+        let [_width, _height] = res.split('x');
+        // let [width, height] = [parseInt(_width), parseInt(_height)];
+        // if (isNaN(width) || isNaN(height)) {
+        //   // TODO show error message
+        //   return cfg;
+        // }
+        cfg.width = parseInt(_width);
+        cfg.height = parseInt(_height);
+      }
+      return cfg;
+    });
+
     return vscode.window.registerCustomEditorProvider(
       YuvEditorProvider.viewType,
       yuvEditor,
@@ -163,9 +182,15 @@ export class YuvEditorProvider
     let state: YuvState | undefined = this._context.workspaceState.get(uri.toString());
     if (!state) {
       state = {
-        active: true, visible: true, cfg: {
-          width: 1280, height: 720, format: YuvFormat.YUV444
-        }};
+        active: true,
+        visible: true,
+        cfg: {
+          ...{
+            width: 1280, height: 720, format: YuvFormat.YUV444
+          },
+          ...vscode.workspace.getConfiguration('yuv-viewer').defaultFrameConfig
+        }
+      };
     } else {
       state.active = true;
       state.visible = true;

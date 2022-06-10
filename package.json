@@ -9,7 +9,7 @@
     "url": "git+ssh://git@github.com/parence/yuv-viewer-vscode.git"
   },
   "engines": {
-    "vscode": "^1.63.0"
+    "vscode": "^1.67.0"
   },
   "categories": [
     "Other"
@@ -57,6 +57,10 @@
         "title": "Yuv-Viewer: Set height"
       },
       {
+        "command": "yuv-viewer.setResolution",
+        "title": "Yuv-Viewer: Set resolution"
+      },
+      {
         "command": "yuv-viewer.setBitdepth",
         "title": "Yuv-Viewer: Set bitdepth"
       },
@@ -64,7 +68,52 @@
         "command": "yuv-viewer.deleteCache",
         "title": "Yuv-Viewer: Delete cache"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "YuvViewer",
+      "properties": {
+        "yuv-viewer.resolutions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": ["3840x2160", "1920x1080", "1280x720", "832x480", "416x240"],
+          "description": "Predefined frame resolutions",
+          "additionalProperties": false
+        },
+        "yuv-viewer.defaultFrameConfig": {
+          "type": "object",
+          "properties": {
+            "width": {
+              "type": "integer",
+              "default": 416 
+            },
+            "height": {
+              "type": "integer",
+              "default": 240 
+            },
+            "bits": {
+              "type": "integer",
+              "default": 10
+            },
+            "format": {
+              "type": "string",
+              "enum": ["444", "420", "400"],
+              "default": "420",
+              "description": "Chroma subsampling"
+            }
+          },
+          "required": ["width", "height", "format"],
+          "default": {
+            "width": 416,
+            "height": 240,
+            "format": "420"
+          },
+          "additionalProperties": false,
+          "description": "Default frame configuration to use."
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
