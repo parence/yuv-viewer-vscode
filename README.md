@@ -33,9 +33,15 @@ Following commands are added by the Yuv-Viewer extension:
 
 - Set chroma subsampling
 - Set bit depth
+- Set resolution
 - Set width
 - Set height
 - Delete Cache (deletes the stored YUV files configuration from the workspace)
+
+### Settings
+
+- **yuv-viewer.defaultFrameConfig** new yuv files are opend with this configuration
+- **yuv-viewer.resolutions** set of predefined resolutions accessible through the 'set resolution' command
 
 ### Sidebar
 
