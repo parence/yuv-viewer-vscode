@@ -3,7 +3,7 @@
   "displayName": "Yuv Viewer",
   "description": "View YUVs in VSCode",
   "publisher": "nyan",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/parence/yuv-viewer-vscode.git"
@@ -77,7 +77,13 @@
           "items": {
             "type": "string"
           },
-          "default": ["3840x2160", "1920x1080", "1280x720", "832x480", "416x240"],
+          "default": [
+            "3840x2160",
+            "1920x1080",
+            "1280x720",
+            "832x480",
+            "416x240"
+          ],
           "description": "Predefined frame resolutions",
           "additionalProperties": false
         },
@@ -86,11 +92,11 @@
           "properties": {
             "width": {
               "type": "integer",
-              "default": 416 
+              "default": 416
             },
             "height": {
               "type": "integer",
-              "default": 240 
+              "default": 240
             },
             "bits": {
               "type": "integer",
@@ -98,12 +104,20 @@
             },
             "format": {
               "type": "string",
-              "enum": ["444", "420", "400"],
+              "enum": [
+                "444",
+                "420",
+                "400"
+              ],
               "default": "420",
               "description": "Chroma subsampling"
             }
           },
-          "required": ["width", "height", "format"],
+          "required": [
+            "width",
+            "height",
+            "format"
+          ],
           "default": {
             "width": 416,
             "height": 240,
