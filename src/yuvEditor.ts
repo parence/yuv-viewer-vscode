@@ -2,7 +2,8 @@ import * as vscode from "vscode";
 import { getNonce } from "./util";
 import { Disposable } from "./dispose";
 import { FrameCfg, Reader, YuvFormat } from 'yuvjs';
-import { config } from "process";
+import { Worker } from 'worker_threads';
+import { resolve as path_resolve } from 'path';
 
 interface YuvState {
   active: boolean;
@@ -37,8 +38,24 @@ class YuvDocument extends Disposable implements vscode.CustomDocument {
     return this._reader.length;
   }
 
-  public getFrame(idx: number) {
-    return this._reader.read(idx);
+  public get width() {
+    return this._reader.width;
+  }
+
+  public async getFrame(idx: number) {
+    const worker = new Worker(
+      path_resolve(__dirname, 'worker.js'), {
+        workerData: {
+          cfg: {...this._reader.cfg, ...{idx: idx}},
+          path: this.uri.path
+        }
+      }
+    );
+
+    return new Promise<Uint8ClampedArray>((resolve) => {
+      worker.on('message', message => resolve(message.frame));
+      worker.postMessage('load');  
+    });
   }
 
   private readonly _onDidDispose = this._register(
@@ -95,7 +112,9 @@ export class YuvEditorProvider
           const state: YuvState = context.workspaceState.get(yuvFile)!;
           state.cfg = await setCfgItem(state.cfg);
           context.workspaceState.update(yuvFile, state);
-          yuvEditor.postMessage(vscode.Uri.parse(yuvFile), 'refresh', {});
+          yuvEditor.postMessage(vscode.Uri.parse(yuvFile), 'refresh', {
+            width: state.cfg.width
+          });
           vscode.commands.executeCommand('yuv-viewer.refresh');
         }
       });
@@ -219,8 +238,10 @@ export class YuvEditorProvider
     // Wait for the webview to be properly ready before we init
     webviewPanel.webview.onDidReceiveMessage(async (e) => {
       switch (e.type) {
-        case 'load':
+        case 'init':
           this.postMessage(webviewPanel, 'updateFrameCount', {nrFrames: document.nrFrames});
+          this.postMessage(webviewPanel, 'updateWidth', {width: document.width});
+        case 'load':
           this.postMessage(webviewPanel, `load-${e.idx}`, {
             value: await document.getFrame(e.idx),
           });

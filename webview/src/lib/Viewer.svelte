@@ -37,23 +37,18 @@
 
         loading = true;
         await buffering(idx, (bufferSize === undefined) ? offset : bufferSize);
-        if (bufferSize === undefined) {
-            offset = Math.round(offset * 1.5);
-        }
         loading = false;
         await setFrame(idx);
     };
 
     const play = async () => {
         playing = !playing;
-        if (loading || inLoop) return;
+        if (loading) return;
         if (frame_idx >= nr_frames -1) frame_idx = 0;
 
         while (playing && (frame_idx < nr_frames -1)) {
-            inLoop = true;
             await setFrame(++frame_idx);
             await new Promise(resolve => setTimeout(resolve, 1000 / fps));
-            inLoop = false;
         }
         playing = false;
     };
@@ -79,14 +74,6 @@
     let offset = fps;
     let playing = false;
     let loading = false;
-    let inLoop = false;
-
-    // $: {
-    //     if (frame) {
-    //         // buffering(frame_idx + offset, 1)
-    //     }
-        
-    // }
 
 </script>
 
