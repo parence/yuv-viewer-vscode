@@ -3,7 +3,7 @@
   "displayName": "Yuv Viewer",
   "description": "View YUVs in VSCode",
   "publisher": "nyan",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/parence/yuv-viewer-vscode.git"
