@@ -1,22 +1,23 @@
 import * as vscode from "vscode";
 import { getNonce } from "./util";
 import { Disposable } from "./dispose";
-import { FrameCfg, Reader, YuvFormat } from 'yuvjs';
-import { Worker } from 'worker_threads';
-import { resolve as path_resolve } from 'path';
+import { FrameCfg, Reader, YuvFormat } from "yuvjs";
+import { Worker } from "worker_threads";
+import { resolve as path_resolve } from "path";
 
 interface YuvState {
   active: boolean;
   visible: boolean;
   cfg: FrameCfg;
-};
+}
 
 /**
  * Define the document (the data model) used for YUV files.
  */
 class YuvDocument extends Disposable implements vscode.CustomDocument {
   static async create(
-    uri: vscode.Uri, cfg: FrameCfg
+    uri: vscode.Uri,
+    cfg: FrameCfg
   ): Promise<YuvDocument | PromiseLike<YuvDocument>> {
     return new YuvDocument(uri, cfg);
   }
@@ -27,7 +28,7 @@ class YuvDocument extends Disposable implements vscode.CustomDocument {
   private constructor(uri: vscode.Uri, cfg: FrameCfg) {
     super();
     this._uri = uri;
-    this._reader = new Reader(uri.path, cfg);
+    this._reader = new Reader(uri.fsPath, cfg);
   }
 
   public get uri() {
@@ -43,18 +44,16 @@ class YuvDocument extends Disposable implements vscode.CustomDocument {
   }
 
   public async getFrame(idx: number) {
-    const worker = new Worker(
-      path_resolve(__dirname, 'worker.js'), {
-        workerData: {
-          cfg: {...this._reader.cfg, ...{idx: idx}},
-          path: this.uri.path
-        }
-      }
-    );
+    const worker = new Worker(path_resolve(__dirname, "worker.js"), {
+      workerData: {
+        cfg: { ...this._reader.cfg, ...{ idx: idx } },
+        path: this.uri.fsPath,
+      },
+    });
 
     return new Promise<Uint8ClampedArray>((resolve) => {
-      worker.on('message', message => resolve(message.frame));
-      worker.postMessage('load');  
+      worker.on("message", (message) => resolve(message.frame));
+      worker.postMessage("load");
     });
   }
 
@@ -86,8 +85,8 @@ export class YuvEditorProvider
   public static register(context: vscode.ExtensionContext): vscode.Disposable {
     const yuvEditor = new YuvEditorProvider(context);
     /* TODO only for dev */
-    vscode.commands.registerCommand('yuv-viewer.deleteCache', () => {
-      context.workspaceState.keys().forEach(key => {
+    vscode.commands.registerCommand("yuv-viewer.deleteCache", () => {
+      context.workspaceState.keys().forEach((key) => {
         context.workspaceState.update(key, undefined);
       });
     });
@@ -104,7 +103,8 @@ export class YuvEditorProvider
     };
 
     const addCfgCommand = async (
-      name: string, setCfgItem: (cfg: FrameCfg) => Promise<FrameCfg>
+      name: string,
+      setCfgItem: (cfg: FrameCfg) => Promise<FrameCfg>
     ) => {
       vscode.commands.registerCommand(name, async () => {
         const yuvFile = getCurrentYuv();
@@ -112,25 +112,25 @@ export class YuvEditorProvider
           const state: YuvState = context.workspaceState.get(yuvFile)!;
           state.cfg = await setCfgItem(state.cfg);
           context.workspaceState.update(yuvFile, state);
-          yuvEditor.postMessage(vscode.Uri.parse(yuvFile), 'refresh', {
-            width: state.cfg.width
+          yuvEditor.postMessage(vscode.Uri.parse(yuvFile), "refresh", {
+            width: state.cfg.width,
           });
-          vscode.commands.executeCommand('yuv-viewer.refresh');
+          vscode.commands.executeCommand("yuv-viewer.refresh");
         }
       });
     };
 
-    addCfgCommand('yuv-viewer.setSubsampling', async (cfg) => {
-      const format = await vscode.window.showQuickPick(
-        Object.keys(YuvFormat), { canPickMany: false }
-      );
+    addCfgCommand("yuv-viewer.setSubsampling", async (cfg) => {
+      const format = await vscode.window.showQuickPick(Object.keys(YuvFormat), {
+        canPickMany: false,
+      });
       if (format !== undefined) {
         cfg.format = YuvFormat[<keyof typeof YuvFormat>format];
       }
       return cfg;
     });
 
-    addCfgCommand('yuv-viewer.setWidth', async (cfg) => {
+    addCfgCommand("yuv-viewer.setWidth", async (cfg) => {
       const width = await vscode.window.showInputBox();
       if (width) {
         cfg.width = parseInt(width);
@@ -138,7 +138,7 @@ export class YuvEditorProvider
       return cfg;
     });
 
-    addCfgCommand('yuv-viewer.setHeight', async (cfg) => {
+    addCfgCommand("yuv-viewer.setHeight", async (cfg) => {
       const height = await vscode.window.showInputBox();
       if (height) {
         cfg.height = parseInt(height);
@@ -146,7 +146,7 @@ export class YuvEditorProvider
       return cfg;
     });
 
-    addCfgCommand('yuv-viewer.setBitdepth', async (cfg) => {
+    addCfgCommand("yuv-viewer.setBitdepth", async (cfg) => {
       const bits = await vscode.window.showInputBox();
       if (bits) {
         cfg.bits = parseInt(bits);
@@ -154,13 +154,13 @@ export class YuvEditorProvider
       return cfg;
     });
 
-    addCfgCommand('yuv-viewer.setResolution', async (cfg) => {
-      const extCfg = vscode.workspace.getConfiguration('yuv-viewer');
-      const res = await vscode.window.showQuickPick(
-        extCfg.resolutions, { canPickMany: false }
-      );
+    addCfgCommand("yuv-viewer.setResolution", async (cfg) => {
+      const extCfg = vscode.workspace.getConfiguration("yuv-viewer");
+      const res = await vscode.window.showQuickPick(extCfg.resolutions, {
+        canPickMany: false,
+      });
       if (res !== undefined) {
-        let [_width, _height] = res.split('x');
+        let [_width, _height] = res.split("x");
         // let [width, height] = [parseInt(_width), parseInt(_height)];
         // if (isNaN(width) || isNaN(height)) {
         //   // TODO show error message
@@ -198,17 +198,21 @@ export class YuvEditorProvider
     _openContext: {},
     _token: vscode.CancellationToken
   ): Promise<YuvDocument> {
-    let state: YuvState | undefined = this._context.workspaceState.get(uri.toString());
+    let state: YuvState | undefined = this._context.workspaceState.get(
+      uri.toString()
+    );
     if (!state) {
       state = {
         active: true,
         visible: true,
         cfg: {
           ...{
-            width: 1280, height: 720, format: YuvFormat.YUV444
+            width: 1280,
+            height: 720,
+            format: YuvFormat.YUV444,
           },
-          ...vscode.workspace.getConfiguration('yuv-viewer').defaultFrameConfig
-        }
+          ...vscode.workspace.getConfiguration("yuv-viewer").defaultFrameConfig,
+        },
       };
     } else {
       state.active = true;
@@ -217,7 +221,7 @@ export class YuvEditorProvider
     this._context.workspaceState.update(uri.toString(), state);
     const document: YuvDocument = await YuvDocument.create(uri, state!.cfg);
 
-    vscode.commands.executeCommand('yuv-viewer.refresh');
+    vscode.commands.executeCommand("yuv-viewer.refresh");
     return document;
   }
 
@@ -238,10 +242,14 @@ export class YuvEditorProvider
     // Wait for the webview to be properly ready before we init
     webviewPanel.webview.onDidReceiveMessage(async (e) => {
       switch (e.type) {
-        case 'init':
-          this.postMessage(webviewPanel, 'updateFrameCount', {nrFrames: document.nrFrames});
-          this.postMessage(webviewPanel, 'updateWidth', {width: document.width});
-        case 'load':
+        case "init":
+          this.postMessage(webviewPanel, "updateFrameCount", {
+            nrFrames: document.nrFrames,
+          });
+          this.postMessage(webviewPanel, "updateWidth", {
+            width: document.width,
+          });
+        case "load":
           this.postMessage(webviewPanel, `load-${e.idx}`, {
             value: await document.getFrame(e.idx),
           });
@@ -255,11 +263,19 @@ export class YuvEditorProvider
   private getHtmlForWebview(webview: vscode.Webview): string {
     // Local path to script and css for the webview
     const scriptUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._context.extensionUri, "webview/dist", "webview.iife.js")
+      vscode.Uri.joinPath(
+        this._context.extensionUri,
+        "webview/dist",
+        "webview.iife.js"
+      )
     );
 
     const styleMainUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._context.extensionUri, "webview/dist", "style.css")
+      vscode.Uri.joinPath(
+        this._context.extensionUri,
+        "webview/dist",
+        "style.css"
+      )
     );
 
     // Use a nonce to whitelist which scripts can be run
@@ -293,15 +309,17 @@ export class YuvEditorProvider
 
   postMessage(uri: vscode.Uri, type: string, body: any): void;
   postMessage(panel: vscode.WebviewPanel, type: string, body: any): void;
-  postMessage(uriOrPanel: vscode.Uri | vscode.WebviewPanel, type: string, body: any)
-  {
+  postMessage(
+    uriOrPanel: vscode.Uri | vscode.WebviewPanel,
+    type: string,
+    body: any
+  ) {
     const isUri = uriOrPanel instanceof vscode.Uri;
     const panels = isUri ? this.webviews.get(uriOrPanel) : [uriOrPanel];
     for (const panel of panels) {
       panel.webview.postMessage({ type, body });
     }
   }
-
 }
 
 /**
@@ -328,7 +346,11 @@ class WebviewCollection {
   /**
    * Add a new webview to the collection.
    */
-  public add(uri: vscode.Uri, webviewPanel: vscode.WebviewPanel, context: vscode.ExtensionContext) {
+  public add(
+    uri: vscode.Uri,
+    webviewPanel: vscode.WebviewPanel,
+    context: vscode.ExtensionContext
+  ) {
     const entry = { resource: uri.toString(), webviewPanel };
     this._webviews.add(entry);
 
@@ -338,7 +360,7 @@ class WebviewCollection {
       state.visible = false;
       context.workspaceState.update(uri.toString(), state);
       this._webviews.delete(entry);
-      vscode.commands.executeCommand('yuv-viewer.refresh');
+      vscode.commands.executeCommand("yuv-viewer.refresh");
     });
 
     webviewPanel.onDidChangeViewState((event) => {
@@ -346,7 +368,7 @@ class WebviewCollection {
       state.active = event.webviewPanel.active;
       state.visible = event.webviewPanel.visible;
       context.workspaceState.update(uri.toString(), state);
-      vscode.commands.executeCommand('yuv-viewer.refresh');
+      vscode.commands.executeCommand("yuv-viewer.refresh");
     });
   }
 }
