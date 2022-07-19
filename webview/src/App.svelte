@@ -5,6 +5,7 @@
   let nr_frames = 1;
   let width = 500;
   let refresh: () => {};
+  let frame_idx;
   onMount(() => {
     window.addEventListener('message', (event) => {
       if (event.data.type === 'refresh') {
@@ -16,6 +17,12 @@
       }
       if (event.data.type === 'updateWidth') {
         width = event.data.body.width;
+      }
+      if (event.data.type === 'setFrame') {
+        const idx = parseInt(event.data.body.idx);
+        if (!isNaN(idx)) {
+          frame_idx = idx;
+        }
       }
     });
     vscode.postMessage({ type: "init" });
@@ -44,5 +51,5 @@
 
 <div class='w-full min-h-screen flex justify-center items-center'>
   <!-- <div class="icon"><i class="codicon codicon-account"></i> account</div> -->
-  <Viewer bind:refresh={refresh} loadFrame='{loadFrame}' nr_frames={nr_frames}></Viewer>
+  <Viewer bind:refresh bind:frame_idx loadFrame='{loadFrame}' nr_frames={nr_frames}></Viewer>
 </div>

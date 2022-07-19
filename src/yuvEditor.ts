@@ -172,6 +172,23 @@ export class YuvEditorProvider
       return cfg;
     });
 
+    vscode.commands.registerCommand("yuv-viewer.goToFrame", async () => {
+      const yuvFile = getCurrentYuv();
+      if (yuvFile) {
+        const state: YuvState = context.workspaceState.get(yuvFile)!;
+
+        const idx = await vscode.window.showInputBox();
+        if (Number.isInteger(+(idx || 0))) {
+          state.cfg.idx = parseInt(idx!);
+          console.log(`set frame ${state.cfg.idx}`);
+          context.workspaceState.update(yuvFile, state);
+          yuvEditor.postMessage(vscode.Uri.parse(yuvFile), "setFrame", {
+            idx: state.cfg.idx,
+          });
+        }
+      }
+    });
+
     return vscode.window.registerCustomEditorProvider(
       YuvEditorProvider.viewType,
       yuvEditor,

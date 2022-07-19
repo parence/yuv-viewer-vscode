@@ -66,6 +66,10 @@
         "title": "Yuv-Viewer: Set bitdepth"
       },
       {
+        "command": "yuv-viewer.goToFrame",
+        "title": "Yuv-Viewer: Go to frame"
+      },
+      {
         "command": "yuv-viewer.deleteCache",
         "title": "Yuv-Viewer: Delete cache"
       }
