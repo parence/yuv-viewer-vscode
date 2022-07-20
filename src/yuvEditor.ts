@@ -319,6 +319,9 @@ export class YuvEditorProvider
 			<body>
         <div id="app"></div>
 
+        <script>
+          const _vscode = acquireVsCodeApi();
+        </script>
 				<script nonce="${nonce}" src="${scriptUri}"></script>
 			</body>
 			</html>`;
