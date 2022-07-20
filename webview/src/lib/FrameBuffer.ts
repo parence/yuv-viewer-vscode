@@ -2,10 +2,10 @@ type LoadFunc = (idx: number) => Promise<ImageData>;
 
 export default class FrameBuffer {
   private _load: LoadFunc;
-  private size: number = 50;
   private frames: Map<number, Promise<ImageData>> = new Map();
   private nrLoaders: number = 0;
-  private maxLoaders: number = 16;
+  maxLoaders: number = 16;
+  size: number = 50;
 
   constructor(load: LoadFunc, size?: number, parallel?: number) {
     if (size !== undefined) {

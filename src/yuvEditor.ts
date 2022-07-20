@@ -24,11 +24,17 @@ class YuvDocument extends Disposable implements vscode.CustomDocument {
 
   private readonly _uri: vscode.Uri;
   private readonly _reader: Reader;
+  private readonly _maxWorkers: number;
+  private readonly _bufferSize: number;
 
   private constructor(uri: vscode.Uri, cfg: FrameCfg) {
     super();
     this._uri = uri;
     this._reader = new Reader(uri.fsPath, cfg);
+
+    const extCfg = vscode.workspace.getConfiguration("yuv-viewer");
+    this._maxWorkers = extCfg.maxWorkers || 8;
+    this._bufferSize = extCfg.bufferSize || 500;
   }
 
   public get uri() {
@@ -41,6 +47,14 @@ class YuvDocument extends Disposable implements vscode.CustomDocument {
 
   public get width() {
     return this._reader.width;
+  }
+
+  public get maxWorkers() {
+    return this._maxWorkers;
+  }
+
+  public get bufferSize() {
+    return this._bufferSize;
   }
 
   public async getFrame(idx: number) {
@@ -265,6 +279,12 @@ export class YuvEditorProvider
           });
           this.postMessage(webviewPanel, "updateWidth", {
             width: document.width,
+          });
+          this.postMessage(webviewPanel, "setMaxWorkers", {
+            maxWorkers: document.maxWorkers,
+          });
+          this.postMessage(webviewPanel, "setBufferSize", {
+            bufferSize: document.bufferSize,
           });
         case "load":
           this.postMessage(webviewPanel, `load-${e.idx}`, {

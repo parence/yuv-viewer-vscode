@@ -49,15 +49,21 @@
   export let frame_idx = 0;
   export let nr_frames = 1;
   export let fps = 30;
+  export let parallel = 8;
+  export let bufferSize = 500; // in MB
   let frame: ImageData;
   let canvas: HTMLCanvasElement;
 
   let playing = false;
   let loading = false;
 
-  const buffer = new FrameBuffer(loadFrame);
+  const buffer = new FrameBuffer(loadFrame, 50, parallel);
 
   $: setFrame(frame_idx);
+  $: buffer.maxLoaders = parallel;
+  $: buffer.size = frame
+    ? Math.round(bufferSize / ((frame.width * frame.height) / 1024 / 1024))
+    : 50;
 </script>
 
 <div

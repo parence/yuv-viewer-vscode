@@ -24,6 +24,8 @@
   let width = 500;
   let refresh: () => {};
   let frame_idx;
+  let maxWorkers = 8;
+  let bufferSize = 500;
 
   onMount(() => {
     window.addEventListener("message", (event) => {
@@ -36,6 +38,12 @@
       }
       if (event.data.type === "updateWidth") {
         width = event.data.body.width;
+      }
+      if (event.data.type === "setMaxWorkers") {
+        maxWorkers = event.data.body.maxWorkers;
+      }
+      if (event.data.type === "setBufferSize") {
+        bufferSize = event.data.body.bufferSize;
       }
       if (event.data.type === "setFrame") {
         const idx = parseInt(event.data.body.idx);
@@ -66,5 +74,12 @@
 
 <div class="w-full min-h-screen flex justify-center items-center">
   <!-- <div class="icon"><i class="codicon codicon-account"></i> account</div> -->
-  <Viewer bind:refresh bind:frame_idx {loadFrame} {nr_frames} />
+  <Viewer
+    bind:refresh
+    bind:frame_idx
+    {loadFrame}
+    {nr_frames}
+    parallel={maxWorkers}
+    {bufferSize}
+  />
 </div>

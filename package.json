@@ -77,6 +77,16 @@
     "configuration": {
       "title": "YuvViewer",
       "properties": {
+        "yuv-viewer.maxWorkers": {
+          "type": "number",
+          "default": 8,
+          "description": "Maximum number of web workers (parallel processes) to use"
+        },
+        "yuv-viewer.bufferSize": {
+          "type": "number",
+          "default": 500,
+          "description": "Size of frame buffer in MB"
+        },
         "yuv-viewer.resolutions": {
           "type": "array",
           "items": {
