@@ -43,7 +43,7 @@
 
   export const refresh = () => {
     buffer.clear();
-    frame_idx = 0;
+    setFrame(0);
   };
   export let loadFrame: (idx: number) => Promise<ImageData>;
   export let frame_idx = 0;
