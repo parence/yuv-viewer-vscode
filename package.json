@@ -4,7 +4,7 @@
   "description": "View YUVs in VSCode",
   "icon": "assets/icon.png",
   "publisher": "nyan",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "repository": {
     "type": "git",
     "url": "https://github.com/parence/yuv-viewer-vscode.git"
