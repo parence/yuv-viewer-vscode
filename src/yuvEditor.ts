@@ -275,7 +275,7 @@ export class YuvEditorProvider
       switch (e.type) {
         case "init":
           this.postMessage(webviewPanel, "updateFrameCount", {
-            nrFrames: document.nrFrames,
+            nrFrames: Math.round(document.nrFrames),
           });
           this.postMessage(webviewPanel, "updateWidth", {
             width: document.width,

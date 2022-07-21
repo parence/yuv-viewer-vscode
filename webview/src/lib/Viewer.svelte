@@ -64,6 +64,7 @@
   $: buffer.size = frame
     ? Math.round(bufferSize / ((frame.width * frame.height) / 1024 / 1024))
     : 50;
+  $: nr_frames = Math.round(nr_frames);
 </script>
 
 <div
