@@ -8,6 +8,7 @@
 
 <script lang="ts">
   import { onMount } from "svelte";
+  import decompress from "brotli/decompress";
   import Viewer from "./lib/Viewer.svelte";
 
   let vscode: IVscode;
@@ -62,7 +63,13 @@
         const { type, body } = event.data;
         if (type === `load-${idx}`) {
           window.removeEventListener("message", listener);
-          resolve(body.value);
+          const data = body.data;
+          const compressed = !!body.compressed;
+          const frame = compressed
+            ? new Uint8ClampedArray(decompress(data))
+            : data;
+
+          resolve(frame);
         }
       };
       window.addEventListener("message", listener);

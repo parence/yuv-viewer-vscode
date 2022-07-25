@@ -58,15 +58,19 @@ class YuvDocument extends Disposable implements vscode.CustomDocument {
   }
 
   public async getFrame(idx: number) {
+    const compress = vscode.env.remoteName === "ssh-remote";
     const worker = new Worker(path_resolve(__dirname, "worker.js"), {
       workerData: {
         cfg: { ...this._reader.cfg, ...{ idx: idx } },
         path: this.uri.fsPath,
+        compressed: compress,
       },
     });
 
-    return new Promise<Uint8ClampedArray>((resolve) => {
-      worker.on("message", (message) => resolve(message.frame));
+    return new Promise<Record<string, any>>((resolve) => {
+      worker.on("message", (message) =>
+        resolve({ data: message.data, compress })
+      );
       worker.postMessage("load");
     });
   }
@@ -287,9 +291,11 @@ export class YuvEditorProvider
             bufferSize: document.bufferSize,
           });
         case "load":
-          this.postMessage(webviewPanel, `load-${e.idx}`, {
-            value: await document.getFrame(e.idx),
-          });
+          this.postMessage(
+            webviewPanel,
+            `load-${e.idx}`,
+            await document.getFrame(e.idx)
+          );
       }
     });
   }
